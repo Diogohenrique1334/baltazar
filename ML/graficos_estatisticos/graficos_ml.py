@@ -3,7 +3,7 @@ import seaborn as sns
 import numpy as np
 
 
-def Corr_limite_inferior(df, dropDuplicates = True, xrot = 70, yrot = 0, label = 'Variable'):
+def corr_limite_inferior(df, dropDuplicates = True, xrot = 70, yrot = 0, label = 'Variable'):
 
     # Excluir correlações duplicadas mascarando os valores superiores à direita
     if dropDuplicates:
@@ -34,7 +34,7 @@ def Corr_limite_inferior(df, dropDuplicates = True, xrot = 70, yrot = 0, label =
         
     return
 
-def Alvo_vs_atributosSelecionados(data, alvo, atributos, n):
+def alvo_vs_atributosSelecionados(data, alvo, atributos, n):
         
     # Grupos de linhas com 3 (n) gráficos por linha
     row_groups = [atributos[i:i+n] for i in range(0, len(atributos), n)]
@@ -43,4 +43,25 @@ def Alvo_vs_atributosSelecionados(data, alvo, atributos, n):
     for ind in row_groups:
         plot = sns.pairplot(x_vars = ind, y_vars = alvo, data = data, kind = "reg", height = 3)
 
+    return
+
+def cria_scatter_previsoesVSreais(x, y, title, xlabel, ylabel):
+
+    """# Plot das previsões
+        cria_scatter(df_previsoes.Valor_Real, df_previsoes.Valor_Previsto, 'Modelo', 'Previsões', 'Reais')"""
+    
+    # Figura e subplots
+    fig, ax = plt.subplots(figsize = (10, 6))
+    
+    # Scatter
+    ax.scatter(x, y, color = "green", alpha = 0.3)
+
+    # Labels
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
     return

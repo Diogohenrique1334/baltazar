@@ -129,12 +129,14 @@ def Conta_dias_uteis(
     s = pd.to_datetime(start_series, errors='coerce')
     e = pd.to_datetime(end_series,   errors='coerce')
 
-    # 2) Converte para numpy datetime64[D]
-    s_np = s.values.astype('datetime64[D]')
-    e_np = e.values.astype('datetime64[D]')
+    # 2) Converte para numpy datetime64[D] — substitui NaT por sentinela para não travar o busday_count
+    _SENTINELA = np.datetime64('2000-01-01', 'D')
+    mask_invalid_pre = s.isna() | e.isna()
+    s_np = np.where(mask_invalid_pre, _SENTINELA, s.values.astype('datetime64[D]'))
+    e_np = np.where(mask_invalid_pre, _SENTINELA, e.values.astype('datetime64[D]'))
 
     # 3) Prepara feriados para o numpy
-    hol = None
+    hol = []
     if holidays is not None and len(holidays) > 0:
         hol = np.array(pd.to_datetime(holidays, errors='coerce').dropna().values, dtype='datetime64[D]')
 
@@ -148,7 +150,7 @@ def Conta_dias_uteis(
 
     # 6) Converte para Series e aplica máscaras de validade
     out = pd.Series(base, index=start_series.index, dtype='float')
-    mask_invalid = s.isna() | e.isna() | (e_np < s_np)
+    mask_invalid = mask_invalid_pre | (e_np < s_np)
     out = out.mask(mask_invalid, other=np.nan)
 
     return out

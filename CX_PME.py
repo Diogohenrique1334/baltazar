@@ -16,6 +16,8 @@ from pathlib import Path
 
 pd.set_option('display.float_format', '{:.6f}'.format)
 
+_RAIZ_DADOS = os.getcwd().split('Dados')[0]
+
 class funcoes_globais:
 
     def __init__(self):
@@ -51,7 +53,7 @@ class dados_speech:
 
     def __init__(self, colunas=None, caminho=None, projeto = None, caminho_historico = None):
 
-        caminho_local_parte1 = os.getcwd().split('Dados')[0]
+        caminho_local_parte1 = _RAIZ_DADOS
 
         if colunas is None:
             self.colunas = ['% de Tempo de Conversação',
@@ -609,7 +611,7 @@ class Dimensoes:
 
     def __init__(self):
 
-        self.pasta_dimensoes = os.getcwd().split('Dados')[0] + r'Dados\Repositorio_dados\D_'
+        self.pasta_dimensoes = _RAIZ_DADOS + r'Dados\Repositorio_dados\D_'
 
     def D_clientes(self,D_clientes = '\\D_clientes'):
 
@@ -761,7 +763,7 @@ class ps8:
 
     def __init__(self):
 
-        self.pasta_ps8 = os.getcwd().split('Dados')[0] + r'Dados\Repositorio_dados\PS8'
+        self.pasta_ps8 = _RAIZ_DADOS + r'Dados\Repositorio_dados\PS8'
 
         self.De_para_colunas = {"MOTIVO1":"MOTIVO_CONTATO","MOTIVO3":"CATEGORIA_CONTATO","MOTIVO4":"SUB_CATEGORIA_CONTATO"}
 
@@ -855,7 +857,7 @@ class qualtrics:
     
     def __init__(self):
 
-        self.caminho_local_parte1 = os.getcwd().split('Dados')[0]
+        self.caminho_local_parte1 = _RAIZ_DADOS
 
         self.caminho_parte2 = r'Dados/Repositorio_dados/Qualtrics'
 
@@ -951,13 +953,14 @@ class qualtrics:
 
 class portabilidade:
 
-    def __init__(self):
+    def __init__(self, caminho_conflitos=None):
 
-        self.caminho_local_parte1 = os.getcwd().split('Dados')[0]
+        self.caminho_local_parte1 = _RAIZ_DADOS
 
         self.caminho_parte2 = r'Dados\Repositorio_dados\Portabilidade'
 
-        self.caminho = r'C:\Users\f115523\Claro SA\USER-Operações PME - Conflitos Portabilidade'
+        # Pasta de conflitos de portabilidade (Teams/SharePoint). Passe o caminho da sua máquina.
+        self.caminho = caminho_conflitos or r'C:\Users\f115523\Claro SA\USER-Operações PME - Conflitos Portabilidade'
 
     def portabilidade_consolidada(self, ano = None, mes = None):
         

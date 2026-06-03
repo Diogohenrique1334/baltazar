@@ -55,3 +55,4 @@ class ValidacaoSuposicoesRegressao:
         vif["feature"] = train.columns
         vif["VIF"] = [variance_inflation_factor(train.values, i) for i in range(len(train.columns))]
         return vif
+    

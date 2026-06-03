@@ -562,7 +562,7 @@ def barras_empilhadas_horizontais(raw_data=None, series_names=None, eixo=None, t
             "textStyle": {
                 "color": "#ffffff",  # cor da fonte da legenda
                 "fontSize": 11,      # opcional: tamanho da fonte
-#                "fontWeight": "bold" # opcional: negrito
+    #                "fontWeight": "bold" # opcional: negrito
             }},
         "grid": {"left": "3%", "right": "4%", "bottom": "3%", "containLabel": True},
         "xAxis": {"type": "category", 

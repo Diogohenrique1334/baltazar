@@ -148,13 +148,13 @@ class Treinados_consolidados:
         try:
             treinados_consolidados = pd.read_parquet(self.historico_treinados)
         except:
-            treinados_consolidados = pd.read_parquet(r'C:\Users\f115523\OneDrive - Claro SA\General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Treinados\treinados_limiar_25-02-2025.parquet')
+            treinados_consolidados = pd.read_parquet(usuario + r'General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Treinados\treinados_limiar_25-02-2025.parquet')
 
         #Treinados do ano atual
         try:
             treinados_no_atual = pd.read_excel(self.treinados_atual)
         except:
-            treinados_no_atual = pd.read_excel(r'C:\Users\f115523\OneDrive - Claro SA\General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Treinados\Treinados JUMP 2025\TOTAL DE TREINADOS JUMP 2025.xlsx')
+            treinados_no_atual = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Treinados\Treinados JUMP 2025\TOTAL DE TREINADOS JUMP 2025.xlsx')
 
         #Corrigindo as datas do fim da formação
         treinados_no_atual['Data Final'] = treinados_no_atual['Data Final'].astype(str).apply(tratarData)
@@ -221,7 +221,7 @@ class consolidar_turmas:
         try:
             self.E_mails = pd.read_excel(self.caminho_e_mails)
         except:
-            self.E_mails = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Plataformas\\Bases relatório padrão\\RADAR\\Nome_jump.xlsx')
+            self.E_mails = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Plataformas\Bases relatório padrão\RADAR\Nome_jump.xlsx')
 
     def funcao_radar(self,table):
 
@@ -273,12 +273,12 @@ class consolidar_turmas:
         try:
             Turmas_limiar = pd.read_parquet(self.pasta_das_bases_turmas+'\\Turmas_limiar_28_04_25.parquet')
         except:
-            Turmas_limiar = pd.read_parquet('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Plataformas\\PAINEIS JUMP\\Relatório_de_Turmas\\Turmas_limiar_28_04_25.parquet')
+            Turmas_limiar = pd.read_parquet(usuario + r'General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Turmas\Turmas_limiar_28_04_25.parquet')
 
         try:
             turmas_2025 = pd.read_excel(self.pasta_das_bases_turmas+'\\Resumo_Turmas_JUMP_2025\\TOTAL DAS TURMAS JUMP 2025.xlsx')
         except:
-            turmas_2025 = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Plataformas\\PAINEIS JUMP\\Relatório_de_Turmas\\Resumo_Turmas_JUMP_2025\\TOTAL DAS TURMAS JUMP 2025.xlsx')
+            turmas_2025 = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Turmas\Resumo_Turmas_JUMP_2025\TOTAL DAS TURMAS JUMP 2025.xlsx')
 
         turmas_2025['Data Inicial'] = turmas_2025['Data Inicial'].apply(tratarData)
         turmas_2025['Data Final'] = turmas_2025['Data Final'].apply(tratarData)
@@ -292,7 +292,8 @@ class consolidar_turmas:
                                     reverse=True)[0]
             
         except:
-            turmas_mes_atual = sorted([os.path.join('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Plataformas\\PAINEIS JUMP\\Relatório_de_Turmas\\Resumo_Turmas_JUMP_2025\\TURMAS POR MÊS 2025', f) for f in os.listdir('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Plataformas\\PAINEIS JUMP\\Relatório_de_Turmas\\Resumo_Turmas_JUMP_2025\\TURMAS POR MÊS 2025') if f.endswith('.csv')],
+            _pasta_mes = usuario + r'General\BASES_TODAS\Bases Plataformas\PAINEIS JUMP\Relatório_de_Turmas\Resumo_Turmas_JUMP_2025\TURMAS POR MÊS 2025'
+            turmas_mes_atual = sorted([os.path.join(_pasta_mes, f) for f in os.listdir(_pasta_mes) if f.endswith('.csv')],
                                     key=os.path.getctime,
                                     reverse=True)[0]
         
@@ -400,9 +401,9 @@ class Ativos_consolidados:
             self.capilaridade = pd.read_excel(self.caminho_arquivos.replace('Base vigente', 'CAD PDV\\Capilaridade_AA_AAPAP.xlsx'), sheet_name='AA')
 
         except Exception as e:
-            self.cad_pdv = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\CAD PDV'+'\\CADASTRO_NACIONAL_PARCEIROS_ATUAL.xlsb', 
+            self.cad_pdv = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\CAD PDV\CADASTRO_NACIONAL_PARCEIROS_ATUAL.xlsb',
                                         engine='pyxlsb', header=11, dtype={'NUMERO_CNPJ': str})
-            self.capilaridade = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\CAD PDV\\Capilaridade_AA_AAPAP.xlsx', sheet_name='AA')
+            self.capilaridade = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\CAD PDV\Capilaridade_AA_AAPAP.xlsx', sheet_name='AA')
             print(f"Erro ao carregar dados: {e}")
    
     def base_LOJAS_PAPPremium(self,table = None):
@@ -412,7 +413,7 @@ class Ativos_consolidados:
             try:
                 HC = pd.read_excel(self.caminho_arquivos + '\\HC.xlsb', engine='pyxlsb')
             except:
-                HC = pd.read_excel('C:\\Users\\f115523\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\HC.xlsb', engine='pyxlsb')
+                HC = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\HC.xlsb', engine='pyxlsb')
         else:
             HC = table.copy()
 
@@ -440,7 +441,7 @@ class Ativos_consolidados:
             try:
                 base_aa = pd.read_excel(self.caminho_arquivos + '\\BASE_IW.xlsb', engine='pyxlsb')
             except:
-                base_aa = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\BASE_IW.xlsb', engine='pyxlsb')
+                base_aa = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\BASE_IW.xlsb', engine='pyxlsb')
         else:
             
             base_aa = table.copy()
@@ -478,7 +479,7 @@ class Ativos_consolidados:
             try:
                 base_pme = pd.read_excel(self.caminho_arquivos + '\\BASE_IW.xlsb', engine='pyxlsb')
             except:
-                base_pme = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\BASE_IW.xlsb', engine='pyxlsb')
+                base_pme = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\BASE_IW.xlsb', engine='pyxlsb')
 
         else:            
             base_pme = table.copy()
@@ -505,7 +506,7 @@ class Ativos_consolidados:
             try:
                 base_varejo = pd.read_excel(self.caminho_arquivos + '\\VAREJO.xlsx', header=4)
             except:
-                base_varejo = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\VAREJO.xlsx', header=4)
+                base_varejo = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\VAREJO.xlsx', header=4)
         else:
             base_varejo = table.copy()
 
@@ -521,7 +522,7 @@ class Ativos_consolidados:
             try:
                 base_PAPind = pd.read_excel(self.caminho_arquivos + '\\PAP INDIRETO.xlsx')
             except:
-                base_PAPind = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\PAP INDIRETO.xlsx')
+                base_PAPind = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\PAP INDIRETO.xlsx')
 
         else: 
             
@@ -546,7 +547,7 @@ class Ativos_consolidados:
             try:
                 base_PAPind_AG = pd.read_excel(self.caminho_arquivos + '\\PAP INDIRETO AGENCIAS.xlsx', header=1)
             except:
-                base_PAPind_AG = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\PAP INDIRETO AGENCIAS.xlsx', header=1)
+                base_PAPind_AG = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\PAP INDIRETO AGENCIAS.xlsx', header=1)
 
         else:
 
@@ -565,7 +566,7 @@ class Ativos_consolidados:
             try:
                 tlv = pd.read_excel(self.caminho_arquivos + '\\TELEVENDAS.xlsx')
             except:
-                tlv = pd.read_excel('C:\\Users\\f115523\\OneDrive - Claro SA\\General\\BASES_TODAS\\Bases Recebidas de Canais\\Base vigente' + '\\TELEVENDAS.xlsx')
+                tlv = pd.read_excel(usuario + r'General\BASES_TODAS\Bases Recebidas de Canais\Base vigente\TELEVENDAS.xlsx')
         else:
               
             tlv = table.copy()
