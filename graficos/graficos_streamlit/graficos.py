@@ -238,6 +238,79 @@ def grefico_calendario(df, anos=None, tamanho=None, cores=None):
 
     return st_echarts(options=to_native(option), height=tamanho)
 
+def funil(data=None, titulo=None, ordenar="descending", tamanho="350px"):
+
+    """Gráfico de funil (pipeline / etapas).
+
+    Use o transformador: df_para_lista_dict (com controle='name'),
+    gerando uma lista de dicts no formato [{"value": n, "name": "etapa"}].
+
+    *Parâmetros:
+    data: lista de {"value": int, "name": str}.
+    titulo: título opcional exibido no topo.
+    ordenar: 'descending' (default), 'ascending' ou 'none'.
+    tamanho: altura do gráfico (ex.: '350px').
+    """
+
+    options = {
+        "tooltip": {"trigger": "item", "formatter": "{b}: {c}"},
+        "series": [{
+            "type": "funnel",
+            "left": "10%",
+            "width": "80%",
+            "sort": ordenar,
+            "gap": 2,
+            "label": {"show": True, "position": "inside"},
+            "data": data or [],
+        }],
+    }
+
+    if titulo:
+        options["title"] = {"text": titulo, "left": "center"}
+
+    return st_echarts(options=options, height=tamanho)
+
+def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tamanho="300px"):
+
+    """Velocímetro (gauge) para exibir um valor único, ex.: taxa de conclusão.
+
+    Usa o tipo 'gauge' nativo do ECharts (não requer extensões).
+
+    *Parâmetros:
+    valor: número entre 0 e `maximo`.
+    titulo: rótulo exibido abaixo do valor.
+    sufixo: texto após o valor no detalhe (default '%').
+    maximo: valor máximo da escala (default 100).
+    cor: cor do valor em destaque.
+    tamanho: altura do gráfico.
+    """
+
+    options = {
+        "series": [{
+            "type": "gauge",
+            "startAngle": 210,
+            "endAngle": -30,
+            "min": 0,
+            "max": maximo,
+            "progress": {"show": True, "width": 16},
+            "axisLine": {"lineStyle": {"width": 16}},
+            "axisTick": {"show": False},
+            "splitLine": {"length": 10},
+            "axisLabel": {"distance": 18, "fontSize": 10},
+            "pointer": {"width": 5},
+            "detail": {
+                "valueAnimation": True,
+                "formatter": "{value}" + sufixo,
+                "fontSize": 30,
+                "color": cor,
+            },
+            "data": [{"value": valor, "name": titulo or ""}],
+            "title": {"fontSize": 13},
+        }],
+    }
+
+    return st_echarts(options=options, height=tamanho)
+
 def mapa_brasil(dados_estados = None):
 
     """Use o transformados: options_lista_categorica_simples"""
