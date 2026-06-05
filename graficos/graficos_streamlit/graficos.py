@@ -343,6 +343,77 @@ def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tam
 
     return st_echarts(options=options, height=tamanho)
 
+def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, tamanho=None):
+
+    """Heatmap genérico (matriz categórica × categórica).
+
+    Use o transformador: dados_mapa_calor, que devolve (data, eixo_x, eixo_y)
+    onde data é uma lista de [x_idx, y_idx, valor]. Ideal para responder
+    "quais categorias do eixo Y aparecem em cada categoria do eixo X".
+
+    *Parâmetros:
+    data: lista de [indice_x, indice_y, valor].
+    eixo_x: rótulos do eixo X (categorias).
+    eixo_y: rótulos do eixo Y (categorias).
+    titulo: título opcional.
+    cores: paleta do visualMap (claro->forte). Default: tons de verde.
+    tamanho: altura; se None, calcula pela qtd de linhas (eixo_y).
+    """
+
+    data = data or []
+    eixo_x = eixo_x or []
+    eixo_y = eixo_y or []
+    cores = cores or ["#1b3a26", "#2e7d32", "#66bb6a", "#b9f6ca"]
+
+    vmax = max((d[2] for d in data), default=1) or 1
+
+    if tamanho is None:
+        tamanho = f"{max(320, 60 + len(eixo_y) * 26)}px"
+
+    # Esconde o rótulo quando o valor é zero (evita poluir a matriz).
+    label_formatter = JsCode(
+        "function (p) { return p.value[2] > 0 ? p.value[2] : ''; }"
+    ).js_code
+
+    option = {
+        "tooltip": {"position": "top"},
+        "grid": {"height": "70%", "top": "8%", "left": "3%", "right": "4%", "containLabel": True},
+        "xAxis": {
+            "type": "category",
+            "data": eixo_x,
+            "splitArea": {"show": True},
+            "axisLabel": {"rotate": 25, "color": "#cccccc"},
+        },
+        "yAxis": {
+            "type": "category",
+            "data": eixo_y,
+            "splitArea": {"show": True},
+            "axisLabel": {"color": "#cccccc"},
+        },
+        "visualMap": {
+            "min": 0,
+            "max": vmax,
+            "calculable": True,
+            "orient": "horizontal",
+            "left": "center",
+            "bottom": "0%",
+            "textStyle": {"color": "#cccccc"},
+            "inRange": {"color": cores},
+        },
+        "series": [{
+            "name": "uso",
+            "type": "heatmap",
+            "data": data,
+            "label": {"show": True, "color": "#ffffff", "fontSize": 10, "formatter": label_formatter},
+            "emphasis": {"itemStyle": {"shadowBlur": 10, "shadowColor": "rgba(0, 0, 0, 0.5)"}},
+        }],
+    }
+
+    if titulo:
+        option["title"] = {"text": titulo, "left": "center", "textStyle": {"color": "#ffffff"}}
+
+    return st_echarts(options=option, height=tamanho)
+
 def mapa_brasil(dados_estados = None):
 
     """Use o transformados: options_lista_categorica_simples"""
