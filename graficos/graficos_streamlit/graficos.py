@@ -238,9 +238,9 @@ def grefico_calendario(df, anos=None, tamanho=None, cores=None):
 
     return st_echarts(options=to_native(option), height=tamanho)
 
-def funil(data=None, titulo=None, ordenar="descending", tamanho="350px"):
+def funil(data=None, titulo=None, ordenar="descending", cores=None, tamanho="350px"):
 
-    """Gráfico de funil (pipeline / etapas).
+    """Gráfico de funil (pipeline / etapas), estilizado.
 
     Use o transformador: df_para_lista_dict (com controle='name'),
     gerando uma lista de dicts no formato [{"value": n, "name": "etapa"}].
@@ -248,25 +248,57 @@ def funil(data=None, titulo=None, ordenar="descending", tamanho="350px"):
     *Parâmetros:
     data: lista de {"value": int, "name": str}.
     titulo: título opcional exibido no topo.
-    ordenar: 'descending' (default), 'ascending' ou 'none'.
+    ordenar: 'descending' (default), 'ascending' ou 'none'. Quando ordenado,
+        as fatias recebem a paleta em gradiente do topo para a base.
+    cores: paleta de cores (lista). Default: tons de verde da marca.
     tamanho: altura do gráfico (ex.: '350px').
     """
 
+    cores = cores or ["#18990b", "#3aa856", "#65b581", "#8fc9a3", "#b9dcc4", "#d9e8dd"]
+
+    # Ordena no Python para aplicar o gradiente na ordem certa e deixa o
+    # ECharts respeitar essa ordem (sort='none').
+    itens = [dict(x) for x in (data or [])]
+    if ordenar == "descending":
+        itens.sort(key=lambda d: d.get("value", 0), reverse=True)
+    elif ordenar == "ascending":
+        itens.sort(key=lambda d: d.get("value", 0))
+
+    for i, item in enumerate(itens):
+        item.setdefault("itemStyle", {})
+        item["itemStyle"].setdefault("color", cores[i % len(cores)])
+
     options = {
         "tooltip": {"trigger": "item", "formatter": "{b}: {c}"},
+        "legend": {"show": False},
         "series": [{
             "type": "funnel",
-            "left": "10%",
-            "width": "80%",
-            "sort": ordenar,
-            "gap": 2,
-            "label": {"show": True, "position": "inside"},
-            "data": data or [],
+            "left": "8%",
+            "right": "8%",
+            "top": 15,
+            "bottom": 10,
+            "minSize": "20%",
+            "maxSize": "100%",
+            "sort": "none",
+            "gap": 4,
+            "funnelAlign": "center",
+            "label": {
+                "show": True,
+                "position": "inside",
+                "color": "#ffffff",
+                "fontWeight": "bold",
+                "fontSize": 12,
+                "formatter": "{b}\n{c}",
+            },
+            "labelLine": {"show": False},
+            "itemStyle": {"borderColor": "#0e1117", "borderWidth": 2, "opacity": 0.95},
+            "emphasis": {"label": {"fontSize": 14}, "itemStyle": {"opacity": 1}},
+            "data": itens,
         }],
     }
 
     if titulo:
-        options["title"] = {"text": titulo, "left": "center"}
+        options["title"] = {"text": titulo, "left": "center", "textStyle": {"color": "#ffffff"}}
 
     return st_echarts(options=options, height=tamanho)
 
