@@ -23,7 +23,9 @@ def trata_valores_ausentes(df: pd.DataFrame) -> pd.DataFrame:
             assimetria_alta.append(i)
             
             # Preenche valores ausentes com a mediana
-            df[i].fillna(df[i].median(), inplace = True)
+            # Reatribuição (em vez de inplace em Series destacada) p/ compatibilidade
+            # com o Copy-on-Write padrão do pandas >= 3.0
+            df[i] = df[i].fillna(df[i].median())
             
         # Condição para assimetria moderada
         elif (-1 > j > -0.5) or (0.5 < j <  1):
@@ -31,8 +33,8 @@ def trata_valores_ausentes(df: pd.DataFrame) -> pd.DataFrame:
             # Coloca o nome da variável na lista
             assimetria_moderada.append(i)
             
-            # Preenche valores ausentes com a média
-            df[i].fillna(df[i].mean(), inplace = True)
+            # Preenche valores ausentes com a média (CoW-safe, ver acima)
+            df[i] = df[i].fillna(df[i].mean())
         else:
             pass
         
