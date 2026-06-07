@@ -1,0 +1,9 @@
+# Dependências para rodar a suíte de testes (pytest) localmente e no CI.
+# Cobre o conjunto de módulos exercitado por tests/.
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+seaborn
+pytest

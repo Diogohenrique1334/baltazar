@@ -1,5 +1,8 @@
 # Baltazar
 
+[![CI](https://github.com/Diogohenrique1334/baltazar/actions/workflows/ci.yml/badge.svg)](https://github.com/Diogohenrique1334/baltazar/actions/workflows/ci.yml)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org)
+
 Biblioteca pessoal de funções Python reutilizáveis para análise de dados em telecom (Claro SA).
 Cobre ingestão de dados, Machine Learning, séries temporais e visualizações interativas.
 
@@ -32,6 +35,20 @@ baltazar/
 ```
 pandas numpy scikit-learn statsmodels matplotlib seaborn
 sweetviz skimpy selenium pywin32 streamlit streamlit-echarts
+```
+
+---
+
+## Testes
+
+A suíte cobre os módulos centrais de ML e transformação de DataFrames
+(`ML.preparacao_dados`, `funcoes_data_frames.transformacoes`, séries temporais e
+métricas de classificação). Roda automaticamente no **GitHub Actions** (Python 3.9 e 3.11)
+a cada push e pull request.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
 ```
 
 ---
