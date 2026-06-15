@@ -7,9 +7,29 @@ name = "baltazar"
 version = "0.1.0"
 requires-python = ">=3.9"
 
-[tool.setuptools.packages.find]
-where = [".."]
-include = ["baltazar*"]
+# A raiz do repositório É o pacote `baltazar` (os arquivos ficam no topo, não
+# num subdiretório baltazar/). O package-dir mapeia o pacote `baltazar` para "."
+# e os subpacotes são resolvidos automaticamente a partir daí. Isso torna o
+# baltazar instalável via `pip install <repo>` e `pip install git+<url>`
+# (o `where=['..']` antigo só funcionava em editable a partir da pasta pai).
+[tool.setuptools]
+package-dir = { "baltazar" = "." }
+packages = [
+    "baltazar",
+    "baltazar.funcoes_data_frames",
+    "baltazar.funcoes_so",
+    "baltazar.graficos",
+    "baltazar.graficos.graficos_streamlit",
+    "baltazar.ML",
+    "baltazar.ML.graficos_estatisticos",
+    "baltazar.ML.N_supervisionado",
+    "baltazar.ML.supervisionado",
+    "baltazar.ML.supervisionado.regressao_linear",
+    "baltazar.ML.supervisionado.regressao_linear.regressao_lasso_ridge",
+    "baltazar.ML.supervisionado.regressao_logistica",
+    "baltazar.ML.supervisionado.regressao_logistica.avaliacoes_RLG",
+    "baltazar.ML.supervisionado.series_temporais",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

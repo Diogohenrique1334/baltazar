@@ -124,7 +124,13 @@ def meia_rosca(data,tamanho = "300px"):
 
     options = {
         "tooltip": {"trigger": "item"},
-        "legend": {"top": "5%", "left": "center"},
+        "legend": {
+    #        "data": series_names,
+            "textStyle": {
+                "color": "#ffffff",  # cor da fonte da legenda
+                "fontSize": 11,      # opcional: tamanho da fonte
+    #                "fontWeight": "bold" # opcional: negrito
+            }},
         "series": [
             {
                 "name": "Access From",
@@ -343,7 +349,7 @@ def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tam
 
     return st_echarts(options=options, height=tamanho)
 
-def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, tamanho=None):
+def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, sufixo="", tamanho=None):
 
     """Heatmap genérico (matriz categórica × categórica).
 
@@ -357,6 +363,7 @@ def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, tam
     eixo_y: rótulos do eixo Y (categorias).
     titulo: título opcional.
     cores: paleta do visualMap (claro->forte). Default: tons de verde.
+    sufixo: texto após o valor nos rótulos/tooltip (ex.: '%').
     tamanho: altura; se None, calcula pela qtd de linhas (eixo_y).
     """
 
@@ -372,11 +379,16 @@ def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, tam
 
     # Esconde o rótulo quando o valor é zero (evita poluir a matriz).
     label_formatter = JsCode(
-        "function (p) { return p.value[2] > 0 ? p.value[2] : ''; }"
+        "function (p) { return p.value[2] > 0 ? p.value[2] + '" + sufixo + "' : ''; }"
+    ).js_code
+
+    # Tooltip: eixo_x[i] / eixo_y[j] : valor+sufixo
+    tooltip_formatter = JsCode(
+        "function (p) { return p.value[2] + '" + sufixo + "'; }"
     ).js_code
 
     option = {
-        "tooltip": {"position": "top"},
+        "tooltip": {"position": "top", "formatter": tooltip_formatter},
         "grid": {"height": "70%", "top": "8%", "left": "3%", "right": "4%", "containLabel": True},
         "xAxis": {
             "type": "category",
