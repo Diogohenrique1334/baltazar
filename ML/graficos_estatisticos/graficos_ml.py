@@ -45,6 +45,67 @@ def alvo_vs_atributosSelecionados(data, alvo, atributos, n):
 
     return
 
+def histograma_com_outliers(serie, titulo="", cor_principal="#1f77b4", cor_destaque="#000000"):
+
+    """
+    Histograma discreto de uma série numérica, com clipping de outliers (Q1/Q3 ± 3*IQR),
+    linhas de referência (média, mediana, Q1, Q3) e uma barra extra agregando os
+    valores acima do limite superior.
+
+    Útil para distribuições de contagens/dias (ex.: lead time, SLA) onde poucos
+    valores extremos distorceriam a escala do gráfico.
+
+    Parâmetros
+        ----------
+        serie : pd.Series
+            Série numérica a ser plotada.
+        titulo : str
+            Texto exibido no título do gráfico.
+        cor_principal : str
+            Cor das barras do histograma.
+        cor_destaque : str
+            Cor da barra que agrega os valores acima do limite superior.
+    """
+
+    serie = serie.astype(float).dropna()
+
+    mean_val = serie.mean()
+    median_val = serie.median()
+    q1, q3 = serie.quantile([0.25, 0.75])
+    iqr = q3 - q1
+
+    lim_superior = q3 + 3 * iqr
+    lim_inferior = q1 - 3 * iqr
+    serie_plot = serie.clip(lower=lim_inferior, upper=lim_superior)
+
+    xmin = int(np.floor(serie_plot.min()))
+    xmax = int(np.ceil(serie_plot.max()))
+
+    plt.figure(figsize=(12, 6))
+    sns.histplot(serie_plot, discrete=True, color=cor_principal, edgecolor="white", alpha=0.9, shrink=0.9)
+
+    plt.axvline(mean_val, color="#FF6E00", linestyle="--", linewidth=2, label=f"Média: {mean_val:.2f}")
+    plt.axvline(median_val, color="#9467BD", linestyle="--", linewidth=2, label=f"Mediana: {median_val:.2f}")
+    plt.axvline(q1, color="#31681E", linestyle="--", linewidth=2, label=f"Q1: {q1:.2f}")
+    plt.axvline(q3, color=cor_principal, linestyle="--", linewidth=2, label=f"Q3: {q3:.2f}")
+
+    plt.xticks(np.arange(xmin, xmax + 1, 1))
+
+    # Barra adicional agregando valores acima do limite superior
+    count_maiores = (serie > lim_superior).sum()
+    if count_maiores > 0:
+        x_extra = xmax + 1
+        plt.bar([x_extra], [count_maiores], width=0.9, color=cor_destaque, edgecolor="white")
+        plt.text(x_extra, count_maiores * 1.02, f"{count_maiores}", ha="center", va="bottom", fontsize=10)
+
+    plt.title(titulo, fontsize=16, fontweight="bold")
+    plt.ylabel("Contagem", fontsize=14)
+    plt.grid(True, linestyle=":", alpha=0.4)
+    plt.legend(loc="upper right", fontsize=10)
+    plt.tight_layout()
+    plt.show()
+
+
 def cria_scatter_previsoesVSreais(x, y, title, xlabel, ylabel):
 
     """# Plot das previsões

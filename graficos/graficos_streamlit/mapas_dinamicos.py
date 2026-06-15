@@ -124,7 +124,7 @@ def mapa_estado(dados=None, uf="SP", tamanho="800px"):
     options = {
         "tooltip": {
             "trigger": "item",
-            "formatter": _formatter_tooltip_br(),
+            #"formatter": _formatter_tooltip_br(),
         },
         "visualMap": {
             "min": _min,
@@ -200,7 +200,7 @@ def mapa_brasil(dados=None, tamanho="700px"):
     options = {
         "tooltip": {
             "trigger": "item",
-            "formatter": _formatter_tooltip_br(),
+            #"formatter": _formatter_tooltip_br(),
         },
         "visualMap": {
             "min": _min,

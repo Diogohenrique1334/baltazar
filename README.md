@@ -12,8 +12,6 @@ Cobre ingestão de dados, Machine Learning, séries temporais e visualizações 
 
 ```
 baltazar/
-├── CX_PME.py                   # Customer Experience PME: speech, NPS, portabilidade, churn
-├── Inteligencia_OP.py          # Treinamento comercial: turmas, ativos, JUMP
 ├── funcoes_data_frames/        # Leitura CSV, transformações, dados fake, análise exploratória
 ├── funcoes_so/                 # Operações de sistema e arquivos
 ├── ML/
@@ -55,74 +53,15 @@ pytest
 
 ## Módulos principais
 
-### CX_PME — Customer Experience PME
-
-Requer que o projeto consumidor tenha uma pasta `Dados/Repositorio_dados/` acessível pelo `os.getcwd()`.
-
-```python
-from baltazar.CX_PME import dados_speech, Dimensoes, ps8, qualtrics, portabilidade, churn
-
-# Consolidar speech do mês + histórico
-speech = dados_speech(projeto='Movel')
-df = speech.speech_consolidado()
-
-# Ranking de variações por hiper-categoria
-ranking = speech.Rankin_variacao(df, Hiper_categoria='EU USO')
-
-# Enviar relatório HTML por Outlook
-speech.enviar_relatorio_jornadas()
-
-# Dimensões
-dim = Dimensoes()
-df_clientes = dim.D_clientes()
-df_churn    = dim.churn()
-
-# Portabilidade (passe seu caminho de conflitos se diferente do padrão)
-port = portabilidade(caminho_conflitos=r'C:\seu\caminho\Conflitos Portabilidade')
-df_port = port.portabilidade_consolidada()
-port.distribuicao_dias_ativacao(df_port)
-
-# NPS / CSAT / CES
-q = qualtrics()
-df_nps  = q.tratar_base_nps_j1(df_raw)
-nps     = q.calcular_nps(df_nps)
-ces     = q.calcula_ces(df_raw)
-```
-
----
-
-### Inteligencia_OP — Treinamento Comercial
-
-Requer que o projeto consumidor seja executado dentro de um path que contenha `\General\`.
-
-```python
-from baltazar.Inteligencia_OP import (
-    Treinados_consolidados, consolidar_turmas,
-    Ativos_consolidados, treinados_por_temas
-)
-
-# Histórico de treinados
-df_treinados = Treinados_consolidados().gerar_treinados()
-
-# Turmas validadas
-df_turmas = consolidar_turmas().gerar_turmas()
-
-# Ativos por canal
-df_ativos = Ativos_consolidados().gerar_ativos()
-
-# Ativos treinados por tema
-df_tema = treinados_por_temas(df_ativos, df_treinados, df_turmas)
-df_resultado = df_tema.Gera_treinados_por_tema()
-```
-
----
-
 ### funcoes_data_frames
 
 ```python
 from baltazar.funcoes_data_frames.leitura_csv import corrigir_csv
-from baltazar.funcoes_data_frames.transformacoes import colunas_por_delimitadores, reduz_categorias
-from baltazar.funcoes_data_frames.analise_exploratoria import analise_exploratoria
+from baltazar.funcoes_data_frames.transformacoes import (
+    colunas_por_delimitadores, reduz_categorias, normaliza_linha_percentual, trata_data_flexivel
+)
+from baltazar.funcoes_data_frames.preparacao_dados import converte_colunas_data_numericas
+from baltazar.funcoes_data_frames.analise_exploratoria import analise_exploratoria, analise_categoria_temporal
 
 # Ler CSV com encoding ISO-8859-2 e decimais com vírgula
 df = corrigir_csv('arquivo.csv')
@@ -133,8 +72,20 @@ df_explodido = colunas_por_delimitadores(df, coluna='TAGS', delimitador=';')
 # Agrupar categorias com < 5% de frequência em "Other"
 df = reduz_categorias(df, coluna='CATEGORIA', cutoff=0.05)
 
+# Normalizar cada linha como % da soma da linha
+df_pct = normaliza_linha_percentual(df_numerico)
+
+# Converter valores de data em formatos variados (texto ou serial Excel)
+df['DATA'] = df['DATA'].apply(trata_data_flexivel)
+
+# Converter colunas "*data*" numéricas (serial Excel) para datetime
+df = converte_colunas_data_numericas(df, padrao='data')
+
 # Relatório HTML exploratório
 analise_exploratoria(df, 'relatorio.html')
+
+# Histograma + série temporal + decomposição sazonal de uma coluna
+analise_categoria_temporal(df, coluna='VALOR')
 ```
 
 ---
@@ -252,7 +203,7 @@ df_clusters = cluster_simples_dois_valores(
 
 ```python
 from baltazar.ML.graficos_estatisticos.graficos_ml import (
-    corr_limite_inferior, alvo_vs_atributosSelecionados, cria_scatter_previsoesVSreais
+    corr_limite_inferior, alvo_vs_atributosSelecionados, cria_scatter_previsoesVSreais, histograma_com_outliers
 )
 
 # Matriz de correlação (sem duplicatas)
@@ -263,6 +214,9 @@ alvo_vs_atributosSelecionados(df, alvo='TARGET', atributos=['A','B','C'], n=3)
 
 # Scatter previsões vs reais
 cria_scatter_previsoesVSreais(y_real, y_pred, 'Modelo', 'Previsões', 'Reais')
+
+# Histograma com clipping de outliers e linhas de referência
+histograma_com_outliers(df['DIAS_PARA_ATIVACAO'], titulo='Distribuição de dias para ativação')
 ```
 
 ---
