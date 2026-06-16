@@ -1,13 +1,15 @@
 from typing import Sequence, Optional, Dict, Any, List, Union, Iterable
 import datetime as dt
-import matplotlib.pyplot as plt
-import plotly.express as px
 import pandas as pd
 import numpy as np
-from streamlit_echarts import st_echarts,Map, JsCode
+from streamlit_echarts import st_echarts, Map, JsCode
 import json
-import requests
 import streamlit as st
+
+# Imports pesados (matplotlib, plotly, requests) são feitos de forma preguiçosa
+# dentro das funções que realmente os usam (ex.: mapa_brasil/mapa_sp usam
+# requests). Assim, apps leves que só usam os gráficos ECharts conseguem importar
+# este módulo sem ter essas bibliotecas instaladas.
 
 
 def liquid_fill(
@@ -91,9 +93,13 @@ def barras_laterais_sum_qtd(
             }
     return st_echarts(options=options1, height=tamanho)
 
-def grafico_rosca(data, tamanho = "500px"):
+def grafico_rosca(data, tamanho = "500px", cores = None, key = None):
 
-    """Use o tranformador: options_lista_categorica_simples"""
+    """Use o tranformador: options_lista_categorica_simples
+
+    cores: paleta opcional (lista de cores) aplicada às fatias.
+    key: chave opcional do componente (evita colisão com vários no mesmo app).
+    """
 
     options = {
         "tooltip": {"trigger": "item"},
@@ -116,11 +122,17 @@ def grafico_rosca(data, tamanho = "500px"):
             }
         ],
     }
-    st_echarts(options=options, height=tamanho)
+    if cores:
+        options["color"] = list(cores)
+    return st_echarts(options=options, height=tamanho, key=key)
 
-def meia_rosca(data,tamanho = "300px"):
+def meia_rosca(data, tamanho = "300px", cores = None, key = None):
 
-    """Use o transformados: options_lista_categorica_simples"""
+    """Use o transformados: options_lista_categorica_simples
+
+    cores: paleta opcional (lista de cores) aplicada às fatias.
+    key: chave opcional do componente.
+    """
 
     options = {
         "tooltip": {"trigger": "item"},
@@ -143,7 +155,9 @@ def meia_rosca(data,tamanho = "300px"):
             }
         ],
     }
-    return st_echarts(options=options, height=tamanho)
+    if cores:
+        options["color"] = list(cores)
+    return st_echarts(options=options, height=tamanho, key=key)
 
 def grefico_calendario(df, anos=None, tamanho=None, cores=None):
     """
@@ -308,7 +322,7 @@ def funil(data=None, titulo=None, ordenar="descending", cores=None, tamanho="350
 
     return st_echarts(options=options, height=tamanho)
 
-def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tamanho="300px"):
+def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tamanho="300px", key=None):
 
     """Velocímetro (gauge) para exibir um valor único, ex.: taxa de conclusão.
 
@@ -321,6 +335,7 @@ def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tam
     maximo: valor máximo da escala (default 100).
     cor: cor do valor em destaque.
     tamanho: altura do gráfico.
+    key: chave opcional do componente.
     """
 
     options = {
@@ -347,7 +362,7 @@ def velocimetro(valor=0, titulo=None, sufixo="%", maximo=100, cor="#18990b", tam
         }],
     }
 
-    return st_echarts(options=options, height=tamanho)
+    return st_echarts(options=options, height=tamanho, key=key)
 
 def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, sufixo="", tamanho=None):
 
@@ -429,6 +444,8 @@ def mapa_calor(data=None, eixo_x=None, eixo_y=None, titulo=None, cores=None, suf
 def mapa_brasil(dados_estados = None):
 
     """Use o transformados: options_lista_categorica_simples"""
+
+    import requests
 
     if dados_estados is None:
         dados_estados = [
@@ -540,6 +557,8 @@ def mapa_brasil(dados_estados = None):
 def mapa_sp(dados = None, tamanho = "800px"):
 
     """Use o transformados: options_lista_categorica_simples"""
+
+    import requests
 
     if dados is None:
         dados = [
@@ -870,12 +889,19 @@ def mapa_palavras(data):
     
     return st_echarts(wordcloud_option)
 
-def barras_simples(categorias,valores, tamanho = "300px"):
+def barras_simples(categorias, valores, tamanho = "300px", cor = None, titulo = None, key = None):
 
-    """Use os transformadores: options_lista_categorica_simples"""
+    """Use os transformadores: options_lista_categorica_simples
+
+    cor: cor das barras (default verde da marca).
+    titulo: título exibido no topo (default 'Análise de Gastos').
+    key: chave opcional do componente.
+    """
+
+    cor = cor or "#18990b"
 
     options = {
-        "title": {"text": "Análise de Gastos"},
+        "title": {"text": titulo or "Análise de Gastos"},
         "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}},
         #"legend": {"data": ["Gastos"]},
         "toolbox": {"feature": {"saveAsImage": {}, "restore": {}, "dataView": {}}},
@@ -887,10 +913,10 @@ def barras_simples(categorias,valores, tamanho = "300px"):
             "type": "bar",
             #"label": {"show": True, "position": "top"},
             "markLine": {"data": [{"type": "average", "name": "Média"}]},
-            "color":['#18990b']
+            "color":[cor]
         }],
     }
-    return st_echarts(options=options, height=tamanho)
+    return st_echarts(options=options, height=tamanho, key=key)
 
 def mapa_correlacao(table,categorias, tamanho = "500px"):
 
@@ -1093,3 +1119,404 @@ def options_calendário_echart(
         return obj
 
     return st_echarts(options=to_native(option))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Gráficos de dashboard (DataFrame-based)
+#
+# Recebem um pandas.DataFrame + nomes de coluna (dados já agregados) e renderizam
+# via st_echarts. Todos aceitam `cor`/`cores` (paleta por argumento) e `key`
+# (evita colisão de componentes quando há vários no mesmo app). Pensados para
+# dashboards densos com KPIs + muitos gráficos. Cor default = verde da marca; cada
+# app passa a sua identidade (ex.: dourado #D4AF37 no BDC).
+#
+# `cor_eixos` e `cor_legenda` (opcionais) controlam a cor do texto dos eixos e da
+# legenda — essenciais em tema dark, onde o texto padrão (escuro) fica ilegível.
+# ══════════════════════════════════════════════════════════════════════════════
+
+_TOOLTIP_AXIS = {"trigger": "axis", "axisPointer": {"type": "shadow"}}
+_GRID_COMPACTO = {"left": "2%", "right": "8%", "bottom": "3%", "top": "10%", "containLabel": True}
+
+
+def _aplica_cores_texto(options, cor_eixos=None, cor_legenda=None):
+    """Injeta a cor do texto dos eixos e da legenda no dict de opções.
+
+    cor_eixos: pinta `axisLabel.color` de xAxis/yAxis (aceita dict ou lista).
+    cor_legenda: pinta `legend.textStyle.color` (apenas se já houver legenda).
+    Quando None, não altera nada (mantém o default do ECharts).
+    """
+    if cor_eixos:
+        for nome_eixo in ("xAxis", "yAxis"):
+            eixo = options.get(nome_eixo)
+            if isinstance(eixo, dict):
+                eixo.setdefault("axisLabel", {})["color"] = cor_eixos
+            elif isinstance(eixo, list):
+                for e in eixo:
+                    if isinstance(e, dict):
+                        e.setdefault("axisLabel", {})["color"] = cor_eixos
+    if cor_legenda and isinstance(options.get("legend"), dict):
+        options["legend"].setdefault("textStyle", {})["color"] = cor_legenda
+    return options
+
+
+def barras_horizontais(df, col_categoria, col_valor, cor="#18990b", key=None, tamanho="300px",
+                       cor_eixos=None, cor_legenda=None):
+    """Ranking em barras horizontais (maior valor no topo)."""
+    df = df.sort_values(col_valor, ascending=True)
+    options = {
+        "tooltip": _TOOLTIP_AXIS,
+        "grid": _GRID_COMPACTO,
+        "xAxis": {"type": "value"},
+        "yAxis": {"type": "category", "data": df[col_categoria].astype(str).tolist()},
+        "series": [{
+            "type": "bar",
+            "data": [float(v) for v in df[col_valor].tolist()],
+            "itemStyle": {"color": cor, "borderRadius": [0, 4, 4, 0]},
+            "label": {"show": True, "position": "right", "fontSize": 11},
+        }],
+    }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def barras_verticais(df, col_categoria, col_valor, cor="#18990b", rotular=True, key=None,
+                     tamanho="300px", cor_eixos=None, cor_legenda=None):
+    """Barras verticais simples com rótulo no topo."""
+    options = {
+        "tooltip": _TOOLTIP_AXIS,
+        "grid": _GRID_COMPACTO,
+        "xAxis": {"type": "category", "data": df[col_categoria].astype(str).tolist(),
+                  "axisLabel": {"rotate": 30, "fontSize": 10}},
+        "yAxis": {"type": "value"},
+        "series": [{
+            "type": "bar",
+            "data": [float(v) for v in df[col_valor].tolist()],
+            "itemStyle": {"color": cor, "borderRadius": [4, 4, 0, 0]},
+            "label": {"show": rotular, "position": "top", "fontSize": 10},
+        }],
+    }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def barras_coloridas(df, col_categoria, col_valor, col_cor=None, cores_por_categoria=None,
+                     cor_padrao="#18990b", horizontal=False,
+                     min_eixo=None, max_eixo=None, key=None, tamanho="300px",
+                     cor_eixos=None, cor_legenda=None):
+    """Barras com uma cor por categoria (ex.: resultado V/E/D).
+
+    col_categoria: coluna usada como rótulo no eixo (categorias do eixo).
+    col_cor: coluna que define a cor de cada barra via `cores_por_categoria`.
+        Se None, usa a própria `col_categoria` (ex.: gráfico "por resultado").
+        Útil quando o eixo é um rótulo (ex.: partida) e a cor vem de outra coluna.
+    cores_por_categoria: dict {valor: cor}. Valores ausentes usam `cor_padrao`.
+    horizontal=True desenha barras laterais (categoria no eixo Y).
+    """
+    cores_por_categoria = cores_por_categoria or {}
+    col_cor = col_cor or col_categoria
+    data = [
+        {"value": float(row[col_valor]),
+         "itemStyle": {"color": cores_por_categoria.get(row[col_cor], cor_padrao)}}
+        for _, row in df.iterrows()
+    ]
+    categorias = df[col_categoria].astype(str).tolist()
+
+    eixo_valor = {"type": "value"}
+    if min_eixo is not None:
+        eixo_valor["min"] = min_eixo
+    if max_eixo is not None:
+        eixo_valor["max"] = max_eixo
+
+    if horizontal:
+        options = {
+            "tooltip": {"trigger": "axis"},
+            "grid": {"left": "3%", "right": "12%", "bottom": "3%", "containLabel": True},
+            "xAxis": eixo_valor,
+            "yAxis": {"type": "category", "data": categorias},
+            "series": [{"type": "bar", "data": data,
+                        "label": {"show": True, "position": "right"}}],
+        }
+    else:
+        options = {
+            "tooltip": {"trigger": "axis"},
+            "grid": _GRID_COMPACTO,
+            "xAxis": {"type": "category", "data": categorias,
+                      "axisLabel": {"rotate": 45, "fontSize": 9}},
+            "yAxis": eixo_valor,
+            "series": [{"type": "bar", "data": data,
+                        "label": {"show": True, "position": "top", "fontSize": 9}}],
+        }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def barras_agrupadas(df, col_x, series, cores=None, key=None, tamanho="300px",
+                     cor_eixos=None, cor_legenda=None):
+    """Barras agrupadas. `series` = {nome_serie: nome_coluna_no_df}."""
+    cores = cores or ["#18990b", "#1a1a1a", "#9E9E9E", "#4CAF50"]
+    series_blocks = [
+        {
+            "name": nome,
+            "type": "bar",
+            "data": [float(v) for v in df[col_df].tolist()],
+            "itemStyle": {"color": cores[i % len(cores)], "borderRadius": [3, 3, 0, 0]},
+            "label": {"show": True, "position": "top", "fontSize": 9},
+        }
+        for i, (nome, col_df) in enumerate(series.items())
+    ]
+    options = {
+        "tooltip": _TOOLTIP_AXIS,
+        "legend": {"top": 0},
+        "grid": {"left": "2%", "right": "4%", "bottom": "3%", "top": "15%", "containLabel": True},
+        "xAxis": {"type": "category", "data": df[col_x].astype(str).tolist(),
+                  "axisLabel": {"rotate": 20, "fontSize": 10}},
+        "yAxis": {"type": "value"},
+        "series": series_blocks,
+    }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def linha_temporal(df, col_x, col_y, nome="", cor="#18990b",
+                   min_y=None, max_y=None, key=None, tamanho="300px",
+                   cor_eixos=None, cor_legenda=None):
+    """Série temporal (linha suave com área)."""
+    eixo_y = {"type": "value"}
+    if min_y is not None:
+        eixo_y["min"] = min_y
+    if max_y is not None:
+        eixo_y["max"] = max_y
+    options = {
+        "tooltip": {"trigger": "axis"},
+        "xAxis": {"type": "category", "data": [str(v) for v in df[col_x].tolist()]},
+        "yAxis": eixo_y,
+        "series": [{
+            "name": nome,
+            "type": "line",
+            "smooth": True,
+            "data": [float(v) for v in df[col_y].tolist()],
+            "lineStyle": {"color": cor, "width": 3},
+            "itemStyle": {"color": cor},
+            "areaStyle": {"opacity": 0.1},
+        }],
+    }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def linha_com_rotulos(df, col_x, col_y, sufixo="", cor="#18990b",
+                      min_y=None, max_y=None, key=None, tamanho="300px",
+                      cor_eixos=None, cor_legenda=None):
+    """Linha com marcadores e rótulo de valor em cada ponto."""
+    eixo_y = {"type": "value"}
+    if min_y is not None:
+        eixo_y["min"] = min_y
+    if max_y is not None:
+        eixo_y["max"] = max_y
+    options = {
+        "tooltip": {"trigger": "axis"},
+        "grid": {"left": "3%", "right": "5%", "bottom": "3%", "top": "15%", "containLabel": True},
+        "xAxis": {"type": "category", "data": df[col_x].astype(str).tolist()},
+        "yAxis": eixo_y,
+        "series": [{
+            "type": "line",
+            "smooth": False,
+            "data": [float(v) for v in df[col_y].tolist()],
+            "symbol": "circle",
+            "symbolSize": 8,
+            "lineStyle": {"color": cor, "width": 3},
+            "itemStyle": {"color": cor},
+            "label": {
+                "show": True,
+                "position": "top",
+                "formatter": "{c}" + sufixo,
+                "fontSize": 11,
+                "fontWeight": "bold",
+            },
+        }],
+    }
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def barras_status(df, col_valor, col_cor, col_rotulo_x, cores_por_categoria=None,
+                  cor_padrao="#18990b", altura_minima=0, col_rotulo_valor=None,
+                  key=None, tamanho="260px", cor_eixos=None, cor_legenda=None):
+    """Barras com altura = valor e cor por categoria (ex.: status de jogos).
+
+    col_valor: coluna com a altura/valor da barra.
+    col_cor: coluna categórica que define a cor (via `cores_por_categoria`).
+    col_rotulo_x: coluna com o rótulo do eixo X (já formatado).
+    altura_minima: piso visual da barra (mantém barras de valor 0 visíveis).
+        Use ``None`` para não aplicar piso — necessário p/ valores negativos
+        (ex.: saldo de gols), em que a barra deve descer abaixo do zero.
+    col_rotulo_valor: coluna com o texto do rótulo no topo da barra. Se None,
+        usa o próprio valor (útil p/ exibir, p.ex., "+3"/"-2" em vez de 3/-2).
+    """
+    cores_por_categoria = cores_por_categoria or {}
+
+    def _altura(v):
+        return float(v) if altura_minima is None else max(float(v), altura_minima)
+
+    data = [
+        {
+            "value": _altura(row[col_valor]),
+            "itemStyle": {"color": cores_por_categoria.get(row[col_cor], cor_padrao)},
+            "label": {"show": True, "position": "top",
+                      "formatter": str(row[col_rotulo_valor if col_rotulo_valor else col_valor]),
+                      "fontSize": 9},
+        }
+        for _, row in df.iterrows()
+    ]
+    options = {
+        "tooltip": {"trigger": "axis"},
+        "grid": {"left": "2%", "right": "2%", "bottom": "20%", "top": "15%", "containLabel": True},
+        "xAxis": {
+            "type": "category",
+            "data": df[col_rotulo_x].astype(str).tolist(),
+            "axisLabel": {"interval": 0, "rotate": 45, "fontSize": 8},
+        },
+        "yAxis": {"type": "value", "show": False},
+        "series": [{"type": "bar", "data": data, "barMaxWidth": 30}],
+    }
+    if cores_por_categoria:
+        options["legend"] = {"data": list(cores_por_categoria.keys()), "top": 0,
+                             "textStyle": {"fontSize": 10}}
+    _aplica_cores_texto(options, cor_eixos, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def donut(labels, valores, cores=None, key=None, tamanho="240px", cor_legenda=None):
+    """Gráfico de rosca a partir de listas (labels + valores).
+
+    Diferente de `grafico_rosca`, que recebe `data` já no formato de dicts.
+    Layout pensado para cartões estreitos: legenda embaixo, rosca centralizada e
+    o percentual **dentro** da fatia (sem rótulos externos, que vazavam e batiam
+    na legenda).
+    """
+    if cores is None:
+        cores = ["#18990b", "#1a1a1a", "#9E9E9E", "#4CAF50", "#F44336"]
+    data = [
+        {"name": str(l), "value": float(v), "itemStyle": {"color": cores[i % len(cores)]}}
+        for i, (l, v) in enumerate(zip(labels, valores))
+    ]
+    options = {
+        "tooltip": {"trigger": "item", "formatter": "{b}: {c} ({d}%)"},
+        "legend": {
+            "bottom": 0, "left": "center", "type": "scroll",
+            "textStyle": {"fontSize": 10},
+            "itemWidth": 12, "itemHeight": 12,
+        },
+        "series": [{
+            "type": "pie",
+            "radius": ["42%", "64%"],
+            "center": ["50%", "44%"],
+            "avoidLabelOverlap": True,
+            "data": data,
+            "label": {"show": True, "position": "inside", "formatter": "{d}%",
+                      "color": "#ffffff", "fontSize": 10, "fontWeight": "bold"},
+            "labelLine": {"show": False},
+            "emphasis": {"itemStyle": {"shadowBlur": 10, "shadowOffsetX": 0,
+                                       "shadowColor": "rgba(0,0,0,0.5)"}},
+        }],
+    }
+    _aplica_cores_texto(options, None, cor_legenda)
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def gauge_progresso(pct, cor="#18990b", key=None, tamanho="220px"):
+    """Gauge semicircular de progresso (0–100%), sem ponteiro.
+
+    Cor do arco e do valor segue `cor`. Para um velocímetro completo (com
+    ponteiro/escala), use `velocimetro`.
+    """
+    options = {
+        "series": [{
+            "type": "gauge",
+            "startAngle": 180,
+            "endAngle": 0,
+            "min": 0,
+            "max": 100,
+            "radius": "90%",
+            "center": ["50%", "65%"],
+            "axisLine": {"lineStyle": {"width": 18,
+                                       "color": [[float(pct) / 100, cor], [1, "#e0e0e0"]]}},
+            "pointer": {"show": False},
+            "axisTick": {"show": False},
+            "splitLine": {"show": False},
+            "axisLabel": {"show": False},
+            "detail": {
+                "offsetCenter": [0, "-10%"],
+                "valueAnimation": True,
+                "formatter": "{value}%",
+                "fontSize": 24,
+                "fontWeight": "bold",
+                "color": cor,
+            },
+            "data": [{"value": float(pct), "name": "Aproveit."}],
+        }],
+    }
+    return st_echarts(options=options, height=tamanho, key=key)
+
+
+def campo_futebol(jogadores, cor_campo="#1f7a3d", cor_marcador="#18990b",
+                  cor_texto="#ffffff", titulo=None, key=None, tamanho="560px"):
+    """Desenha um campo de futebol com os jogadores posicionados.
+
+    jogadores: lista de dicts com:
+        - nome (str) — rótulo exibido;
+        - nota (num, opcional) — mostrada abaixo do nome;
+        - x (0–100) — posição horizontal (0=esquerda, 100=direita);
+        - y (0–100) — profundidade (0=defesa/gol, 100=ataque).
+    cor_campo: fundo do gramado. cor_marcador: cor do círculo do jogador.
+    cor_texto: cor dos rótulos e das linhas do campo.
+    """
+    pontos = []
+    for j in jogadores:
+        nome = str(j.get("nome", ""))
+        nota = j.get("nota")
+        rotulo = nome if nota is None else f"{nome}\n{nota}"
+        pontos.append({"name": rotulo, "value": [j["x"], j["y"]]})
+
+    linha_clara = "rgba(255,255,255,0.55)"
+    options = {
+        "backgroundColor": cor_campo,
+        "grid": {"top": 10, "bottom": 10, "left": 10, "right": 10, "show": True,
+                 "backgroundColor": cor_campo,
+                 "borderColor": linha_clara, "borderWidth": 2},
+        "xAxis": {"type": "value", "min": 0, "max": 100, "show": False},
+        "yAxis": {"type": "value", "min": 0, "max": 100, "show": False},
+        "series": [
+            {  # linha central + círculo central
+                "type": "scatter",
+                "data": [{"value": [50, 50]}],
+                "symbol": "circle",
+                "symbolSize": 80,
+                "itemStyle": {"color": "rgba(0,0,0,0)",
+                              "borderColor": linha_clara, "borderWidth": 2},
+                "markLine": {
+                    "silent": True, "symbol": "none",
+                    "lineStyle": {"color": linha_clara, "width": 2},
+                    "label": {"show": False},
+                    "data": [{"yAxis": 50}],
+                },
+                "z": 1,
+            },
+            {  # jogadores
+                "type": "scatter",
+                "data": pontos,
+                "symbol": "circle",
+                "symbolSize": 30,
+                "itemStyle": {"color": cor_marcador,
+                              "borderColor": cor_texto, "borderWidth": 2},
+                "label": {"show": True, "position": "bottom", "color": cor_texto,
+                          "fontSize": 11, "fontWeight": "bold", "lineHeight": 13,
+                          "formatter": "{b}"},
+                "z": 5,
+            },
+        ],
+    }
+    if titulo:
+        options["title"] = {"text": titulo, "left": "center",
+                            "textStyle": {"color": cor_texto}}
+    return st_echarts(options=options, height=tamanho, key=key)
