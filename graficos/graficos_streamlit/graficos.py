@@ -720,28 +720,36 @@ def barras_empilhadas_laterais(raw_data = None, series_names = None, eixo = None
 
     return st_echarts(options=options, height=tamanho)
 
-def barras_empilhadas_horizontais(raw_data=None, series_names=None, eixo=None, tamanho="500px"):
-    
-    """Use os transformadores: serie_temporal_dia_semana_complexo, serei_semana_mes_complexo, lista_categorica_complexa"""
+def barras_empilhadas_horizontais(raw_data=None, series_names=None, eixo=None,
+                                  tamanho="500px", rotacao=30):
+
+    """Use os transformadores: serie_temporal_dia_semana_complexo, serei_semana_mes_complexo, lista_categorica_complexa
+
+    `rotacao`: graus de rotação dos rótulos do eixo X (default 30). Aumente para
+    rótulos longos que colidem (ex.: tipos de projeto com nome extenso)."""
 
     options = {
         "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}},
         "legend": {
+            "type": "scroll",        # muitas séries não quebram em cima do gráfico
+            "top": 0,                # fixa a legenda no topo (não invade as barras)
             "data": series_names,
             "textStyle": {
                 "color": "#ffffff",  # cor da fonte da legenda
                 "fontSize": 11,      # opcional: tamanho da fonte
     #                "fontWeight": "bold" # opcional: negrito
             }},
-        "grid": {"left": "3%", "right": "4%", "bottom": "3%", "containLabel": True},
-        "xAxis": {"type": "category", 
-                  "data": eixo, 
+        # top: espaço p/ a legenda; containLabel garante que rótulos rotacionados caibam.
+        "grid": {"left": "3%", "right": "4%", "top": 48, "bottom": "3%", "containLabel": True},
+        "xAxis": {"type": "category",
+                  "data": eixo,
                   "axisLabel": {"interval": 0,
-                                "rotate": 15,
+                                "rotate": rotacao,
                                 "fontSize": 12,
+                                "hideOverlap": False,
                                 "overflow": 'break'}
-                }, 
-        "yAxis": {"type": "value"},                 
+                },
+        "yAxis": {"type": "value"},
         "series": raw_data,
     }
 
