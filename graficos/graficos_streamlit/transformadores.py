@@ -353,3 +353,41 @@ def dados_grafico_barras(df, agregardor,valores, _agg = 'sum', ordenacao = True)
     _valores = [ x for x in t[valores] ]
 
     return categorias,_valores
+
+def dados_mapa_calor(df, col_x, col_y, valores, _agg='count', top_y=15, percentual=False):
+    """Prepara dados para um heatmap (matriz col_x × col_y), pareado com mapa_calor.
+
+    Retorna (data, eixo_x, eixo_y) no formato esperado por mapa_calor:
+    data = [[indice_x, indice_y, valor], ...].
+
+    col_x : coluna que vai para o eixo X (ex.: 'tipo_projeto').
+    col_y : coluna que vai para o eixo Y (ex.: 'value').
+    valores : coluna agregada (ex.: 'id').
+    top_y : mantém apenas as N linhas (eixo Y) mais frequentes.
+    percentual : se True, normaliza cada célula pelo nº de itens distintos da
+        coluna (col_x), virando "% dos itens daquele tipo". O top_y continua
+        sendo pela frequência absoluta.
+    """
+    if df.empty:
+        return [], [], []
+
+    piv = df.pivot_table(index=col_y, columns=col_x, values=valores, aggfunc=_agg).fillna(0)
+
+    # Seleção/ordenação por frequência ABSOLUTA (mesmo quando exibido em %).
+    piv = piv.loc[piv.sum(axis=1).sort_values(ascending=False).index[:top_y]]
+    piv = piv[piv.sum(axis=0).sort_values(ascending=False).index]
+    # Ordena o eixo Y crescente para o mais usado ficar no topo do heatmap.
+    piv = piv.loc[piv.sum(axis=1).sort_values(ascending=True).index]
+
+    if percentual:
+        totais = df.groupby(col_x)[valores].nunique()
+        piv = (piv.divide(totais, axis=1).fillna(0) * 100).round(0)
+
+    eixo_x = [str(c) for c in piv.columns]
+    eixo_y = [str(i) for i in piv.index]
+    data = [
+        [xi, yi, int(piv.iloc[yi, xi])]
+        for yi in range(piv.shape[0])
+        for xi in range(piv.shape[1])
+    ]
+    return data, eixo_x, eixo_y

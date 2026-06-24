@@ -86,8 +86,13 @@ def colunas_por_delimitadores(
     df_novo = pd.merge(df,novas_colunas, left_index=True, right_index=True)
 
     df_novo_expandido = pd.melt(df_novo, id_vars = [x for x in df_novo.columns if not isinstance(x, int)]).reset_index(drop='index')
-    
-    return df_novo_expandido.dropna(axis=0, how='any')
+
+    # Dropa apenas onde o valor explodido é nulo/vazio — não por NaN em OUTRAS
+    # colunas (ex.: campos opcionais ainda não preenchidos). dropna(how='any')
+    # antigo derrubava linhas válidas indevidamente.
+    df_novo_expandido = df_novo_expandido.dropna(subset=['value'])
+    valores = df_novo_expandido['value'].astype(str).str.strip()
+    return df_novo_expandido[valores.ne('') & valores.ne('None') & valores.ne('nan')]
 
 def reduz_categorias(categories, cutoff):
         
