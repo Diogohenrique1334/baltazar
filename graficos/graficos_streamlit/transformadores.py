@@ -243,11 +243,8 @@ def top_10_categorias(
                                                                 aggfunc = _agg).sort_values(by = valores, ascending = False).head(15).reset_index()
         
         t = t.values.tolist()
-         
-        op.update({a:t})
 
-        print(op)
-        print("-----")
+        op.update({a:t})
 
     return op,categorias,options_lista_categorica_simples(df_filtrado,categoria,valores,controle='groupId')
 

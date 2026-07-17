@@ -1528,3 +1528,41 @@ def campo_futebol(jogadores, cor_campo="#1f7a3d", cor_marcador="#18990b",
         options["title"] = {"text": titulo, "left": "center",
                             "textStyle": {"color": cor_texto}}
     return st_echarts(options=options, height=tamanho, key=key)
+
+
+def violino(df, col_valor, cor="#18990b", titulo=None, rotulo=None,
+            box=True, pontos="outliers", tamanho=340):
+    """Violino de distribuição de uma coluna numérica (Plotly), tema dark.
+
+    Ideal para ver a forma da distribuição de uma métrica contínua (ex.: horas
+    de sono) com quartis. Renderiza direto (estilo Baltazar) via st.plotly_chart.
+
+    *Parâmetros:
+    df: DataFrame com os dados.
+    col_valor: nome da coluna numérica a distribuir.
+    cor: cor de preenchimento do violino (default verde da marca).
+    titulo: título opcional no topo.
+    rotulo: rótulo do eixo Y (default = nome da coluna).
+    box: mostra o boxplot interno (default True).
+    pontos: 'outliers' (default), 'all', False — pontos sobrepostos.
+    tamanho: altura em px do gráfico.
+
+    Imports pesados (plotly) são feitos de forma preguiçosa aqui dentro para não
+    onerar apps que só usam os gráficos ECharts.
+    """
+    import plotly.express as px
+
+    fig = px.violin(
+        df, y=col_valor, box=box, points=pontos,
+        color_discrete_sequence=[cor],
+        labels={col_valor: rotulo or str(col_valor)},
+    )
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=tamanho,
+        margin=dict(l=10, r=10, t=40 if titulo else 10, b=10),
+        title=titulo,
+    )
+    return st.plotly_chart(fig, use_container_width=True)

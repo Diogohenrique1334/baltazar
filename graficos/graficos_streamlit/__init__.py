@@ -10,10 +10,16 @@ from .mapas_dinamicos import (
 
 from .graficos import (
     # primitivas reutilizáveis (aceitam cores/cor + key)
+    liquid_fill,
     grafico_rosca,
     meia_rosca,
     velocimetro,
     barras_simples,
+    grefico_calendario,
+    barras_empilhadas_horizontais,
+    barras_drilldown,
+    mapa_correlacao,
+    violino,
     # gráficos de dashboard (DataFrame-based, aceitam cor/cores + key)
     barras_horizontais,
     barras_verticais,
@@ -33,10 +39,16 @@ __all__ = [
     "obter_mapping_municipios_estado",
     "obter_estados_unicos",
     "obter_mapa_municipios",
+    "liquid_fill",
     "grafico_rosca",
     "meia_rosca",
     "velocimetro",
     "barras_simples",
+    "grefico_calendario",
+    "barras_empilhadas_horizontais",
+    "barras_drilldown",
+    "mapa_correlacao",
+    "violino",
     "barras_horizontais",
     "barras_verticais",
     "barras_coloridas",
